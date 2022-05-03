@@ -34,7 +34,7 @@ const useChat = () => {
 
   useEffect(() => {
     getUserId();
-    socketRef.current = socketIO('http://localhost:4000', { query: { userId: userId.current } });
+    socketRef.current = socketIO(process.env.HOST, { query: { userId: userId.current } });
 
     socketRef.current.on('chat', (data: Message) => {
       const incomingMsg = {
