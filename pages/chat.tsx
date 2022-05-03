@@ -1,4 +1,4 @@
-import { Button, Flex, Heading, HStack, Input, Stack, Text, Textarea } from '@chakra-ui/react';
+import { Button, Flex, Heading, Hide, HStack, Input, Stack, Text, Textarea } from '@chakra-ui/react';
 import { useEffect, useRef, useState } from 'react';
 import Layout from '../components/Layout';
 import { nanoid } from 'nanoid';
@@ -129,7 +129,7 @@ const Chat = () => {
           </Flex>
           <Flex>
             <Stack>
-              <Stack overflow="auto" w={500} h={350}>
+              <Stack overflow="auto" w={400} h={350}>
                 {msgs.map((message) => (
                   <Msg
                     key={message.id}
@@ -158,50 +158,52 @@ const Chat = () => {
                 </Button>
               </HStack>
             </Stack>
-            <Stack borderLeft="1px solid black" pl={5} w={230}>
-              <Text fontWeight="bold">Users</Text>
-              <Stack>
-                {users
-                  .filter((user) => user.active === true)
-                  .map((user) => {
-                    if (user.userId === userId) {
-                      return (
-                        <HStack key={user.userId} justify="space-between">
-                          {edit ? (
-                            <>
-                              <Input
-                                variant="unstyled"
-                                autoFocus
-                                w="fit-content"
-                                value={name}
-                                onChange={(e) => editName(e.currentTarget.value)}
-                              />
-                              <Text
-                                as="button"
-                                onClick={() => {
-                                  setName(name);
-                                  toggleEdit(!edit);
-                                }}
-                                size="sm"
-                                variant="unstyled"
-                              >
-                                ✓
-                              </Text>
-                            </>
-                          ) : (
-                            <>
-                              <Text key={user.userId}>{user.name || user.userId}</Text>
-                              <Text as="button" onClick={() => toggleEdit(!edit)} size="sm" variant="unstyled">
-                                ✍
-                              </Text>
-                            </>
-                          )}
-                        </HStack>
-                      );
-                    }
-                    return <Text key={user.userId}>{user.name || user.userId}</Text>;
-                  })}
-              </Stack>
+            <Stack borderLeft="1px solid black" pl={5}>
+              <Hide below="md">
+                <Text fontWeight="bold">Users</Text>
+                <Stack w={230}>
+                  {users
+                    .filter((user) => user.active === true)
+                    .map((user) => {
+                      if (user.userId === userId) {
+                        return (
+                          <HStack key={user.userId} justify="space-between">
+                            {edit ? (
+                              <>
+                                <Input
+                                  variant="unstyled"
+                                  autoFocus
+                                  w="fit-content"
+                                  value={name}
+                                  onChange={(e) => editName(e.currentTarget.value)}
+                                />
+                                <Text
+                                  as="button"
+                                  onClick={() => {
+                                    setName(name);
+                                    toggleEdit(!edit);
+                                  }}
+                                  size="sm"
+                                  variant="unstyled"
+                                >
+                                  ✓
+                                </Text>
+                              </>
+                            ) : (
+                              <>
+                                <Text key={user.userId}>{user.name || user.userId}</Text>
+                                <Text as="button" onClick={() => toggleEdit(!edit)} size="sm" variant="unstyled">
+                                  ✍
+                                </Text>
+                              </>
+                            )}
+                          </HStack>
+                        );
+                      }
+                      return <Text key={user.userId}>{user.name || user.userId}</Text>;
+                    })}
+                </Stack>
+              </Hide>
             </Stack>
           </Flex>
         </Stack>
