@@ -5,42 +5,48 @@ import { nanoid } from 'nanoid';
 import socketIO, { Socket } from 'socket.io-client';
 
 type Message = {
-  id: string;
+  id: number;
   userId: string;
   name: string;
   time: Date;
   body: string;
+  user: User;
 };
 
 type User = {
-  userId: string;
+  id: string;
   name: string;
-  active: boolean;
 };
 
 const useChat = () => {
-  const [msgs, setMsgs] = useState<Array<Message>>([]);
-  const [users, setUsers] = useState<Array<User>>([]);
-  const userId = useRef('');
+  const [userId, setUserId] = useState('');
+  const [msgs, setMsgs] = useState<Message[]>([]);
+  const [users, setUsers] = useState<User[]>([]);
   const socketRef = useRef<Socket>();
 
   const getUserId = () => {
     const localUser = localStorage.getItem('userId');
-    if (localUser) return (userId.current = localUser);
-    const newUser = nanoid();
-    localStorage.setItem('userId', newUser);
-    return (userId.current = newUser);
+    if (localUser) return setUserId(localUser);
   };
 
   useEffect(() => {
     getUserId();
-    socketRef.current = socketIO(process.env.NEXT_PUBLIC_HOST, { query: { userId: userId.current } });
+  }, []);
+
+  useEffect(() => {
+    socketRef.current = socketIO(process.env.NEXT_PUBLIC_HOST, { query: { userId: userId } });
 
     socketRef.current.on('chat', (data: Message) => {
       const incomingMsg = {
         ...data,
       };
       setMsgs((msgs) => [...msgs, incomingMsg]);
+    });
+
+    socketRef.current.on('userId', (data: string) => {
+      console.log(data);
+      setUserId(data);
+      localStorage.setItem('userId', data);
     });
 
     socketRef.current.on('users', (users: Array<User>) => {
@@ -54,7 +60,7 @@ const useChat = () => {
     return () => {
       socketRef.current.disconnect();
     };
-  }, []);
+  }, [userId]);
 
   const setName = (name: string) => {
     socketRef.current.emit('name', name);
@@ -62,8 +68,7 @@ const useChat = () => {
 
   const sendMsg = (text: string) => {
     socketRef.current.emit('chat', {
-      id: nanoid(),
-      userId: userId.current,
+      userId: userId,
       time: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
       body: text,
     });
@@ -80,20 +85,20 @@ const useChat = () => {
     socketRef.current.emit('delete', data);
   };
 
-  return { userId: userId.current, msgs, users, sendMsg, setName, deleteMsg };
+  return { userId, msgs, users, sendMsg, setName, deleteMsg };
 };
 
 const Msg = (props: { id: string; user: User | null; children: Message; delete: (data: Message) => void }) => (
   <Text
     onClick={() => {
-      if (props.children.userId === props.user.userId) props.delete(props.children);
+      if (props.children.userId === props.user.id) props.delete(props.children);
     }}
     cursor="pointer"
     fontSize={14}
   >
     <Text fontWeight="bold" as="span">
       {props.children.time}
-      {` - ${props.user?.name || props.user?.userId}: `}
+      {` - ${props.user?.name || props.user?.id}: `}
     </Text>
     <Text as="span">{props.children.body}</Text>
   </Text>
@@ -101,6 +106,7 @@ const Msg = (props: { id: string; user: User | null; children: Message; delete: 
 
 const Chat = () => {
   const { userId, msgs, users, sendMsg, setName, deleteMsg } = useChat();
+  console.log('🚀 ~ Chat ~ users', users);
   const [text, setText] = useState('');
   const [name, editName] = useState('');
   const [edit, toggleEdit] = useState(false);
@@ -117,7 +123,7 @@ const Chat = () => {
   };
 
   useEffect(() => {
-    editName(users.find((user) => user.userId === userId)?.name);
+    editName(users.find((user) => user.id === userId)?.name);
   }, [users]);
 
   return (
@@ -131,12 +137,7 @@ const Chat = () => {
             <Stack>
               <Stack overflow="auto" w={400} h={350}>
                 {msgs.map((message) => (
-                  <Msg
-                    key={message.id}
-                    user={users.find((user) => user.userId === message.userId) ?? null}
-                    id={message.userId}
-                    delete={deleteMsg}
-                  >
+                  <Msg key={message.id} user={message.user} id={message.userId} delete={deleteMsg}>
                     {message}
                   </Msg>
                 ))}
@@ -162,46 +163,44 @@ const Chat = () => {
               <Hide below="md">
                 <Text fontWeight="bold">Users</Text>
                 <Stack w={230}>
-                  {users
-                    .filter((user) => user.active === true)
-                    .map((user) => {
-                      if (user.userId === userId) {
-                        return (
-                          <HStack key={user.userId} justify="space-between">
-                            {edit ? (
-                              <>
-                                <Input
-                                  variant="unstyled"
-                                  autoFocus
-                                  w="fit-content"
-                                  value={name}
-                                  onChange={(e) => editName(e.currentTarget.value)}
-                                />
-                                <Text
-                                  as="button"
-                                  onClick={() => {
-                                    setName(name);
-                                    toggleEdit(!edit);
-                                  }}
-                                  size="sm"
-                                  variant="unstyled"
-                                >
-                                  ✓
-                                </Text>
-                              </>
-                            ) : (
-                              <>
-                                <Text key={user.userId}>{user.name || user.userId}</Text>
-                                <Text as="button" onClick={() => toggleEdit(!edit)} size="sm" variant="unstyled">
-                                  ✍
-                                </Text>
-                              </>
-                            )}
-                          </HStack>
-                        );
-                      }
-                      return <Text key={user.userId}>{user.name || user.userId}</Text>;
-                    })}
+                  {users.map((user) => {
+                    if (user.id === userId) {
+                      return (
+                        <HStack key={user.id} justify="space-between">
+                          {edit ? (
+                            <>
+                              <Input
+                                variant="unstyled"
+                                autoFocus
+                                w="fit-content"
+                                value={name}
+                                onChange={(e) => editName(e.currentTarget.value)}
+                              />
+                              <Text
+                                as="button"
+                                onClick={() => {
+                                  setName(name);
+                                  toggleEdit(!edit);
+                                }}
+                                size="sm"
+                                variant="unstyled"
+                              >
+                                ✓
+                              </Text>
+                            </>
+                          ) : (
+                            <>
+                              <Text key={user.id}>{user.name || user.id}</Text>
+                              <Text as="button" onClick={() => toggleEdit(!edit)} size="sm" variant="unstyled">
+                                ✍
+                              </Text>
+                            </>
+                          )}
+                        </HStack>
+                      );
+                    }
+                    return <Text key={user.id}>{user.name || user.id}</Text>;
+                  })}
                 </Stack>
               </Hide>
             </Stack>
