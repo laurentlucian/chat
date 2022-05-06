@@ -23,7 +23,6 @@ const TaskItem = ({
       padding={1.5}
       paddingLeft={5}
       paddingRight={4}
-      borderRadius={13}
       width={400}
       minHeight="45px"
       alignItems="center"
@@ -153,7 +152,6 @@ const Tasks = () => {
               }}
               onKeyDown={(event) => {
                 if (event.key === 'Enter') {
-                  console.log(event.key);
                   onSubmit();
                 }
               }}

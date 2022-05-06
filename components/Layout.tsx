@@ -1,42 +1,65 @@
-import { Box, Link as ChakraLink, Button, Flex, HStack } from '@chakra-ui/react';
+import { Box, Flex, HStack, Input, Text } from '@chakra-ui/react';
 import Head from 'next/head';
-import NextLink from 'next/link';
-import { useRouter } from 'next/router';
-import { ReactNode } from 'react';
+import { ReactNode, useEffect, useState } from 'react';
+import useUser from '../hooks/useUser';
+import { User } from '../interfaces';
+import fetch from '../libs/fetch';
+import Link from './Link';
 
 type Props = {
   children?: ReactNode;
   title?: string;
 };
 
-const Link = (props) => {
-  const { children, href, ...rest } = props;
-  const router = useRouter();
-  const isActive = router.pathname === href;
-
-  return (
-    <NextLink passHref href={href}>
-      <ChakraLink fontWeight={isActive ? 'semibold' : 'normal'} {...rest}>
-        {children}
-      </ChakraLink>
-    </NextLink>
-  );
-};
-
 const Layout = ({ children, title = 'Study Hub' }: Props) => {
+  const { user, mutate, loading } = useUser();
+  const [name, setName] = useState('');
+
+  useEffect(() => {
+    if (user) {
+      setName(user.name);
+    }
+  }, [user?.name]);
+
+  const onSubmit = async () => {
+    const response = await fetch<User>(`http://${process.env.NEXT_PUBLIC_HOST}/user/name`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({ userId: user.id, name: name }),
+    });
+    mutate({ ...user, name: response.name });
+  };
+  if (loading) return <Text>Loading...</Text>;
+
   return (
     <Flex justify="center">
-      <Box minW={400}>
+      <Box minW={500}>
         <Head>
           <title>{title}</title>
           <meta charSet="utf-8" />
           <meta name="viewport" content="initial-scale=1.0, width=device-width" />
         </Head>
-        <HStack mx="auto" as="header" w={400} py={7} mb={5} spacing={4}>
-          <Link href="/">Home</Link>
-          <Link href="/tasks">Tasks</Link>
-          <Link href="/chat">Chat</Link>
-        </HStack>
+        <Flex mx="auto" w={500} as="header" py={7} mb={5} justify="space-between">
+          <HStack spacing={4}>
+            <Link href="/">Home</Link>
+            <Link href="/tasks">Tasks</Link>
+            <Link href="/chat">Chat</Link>
+          </HStack>
+
+          <Input
+            textAlign="right"
+            value={name}
+            w={200}
+            onChange={(e) => setName(e.currentTarget.value)}
+            maxLength={20}
+            onBlur={onSubmit}
+            borderRadius={0}
+            variant="unstyled"
+            pr={4}
+          />
+        </Flex>
         {children}
         {/* footer */}
       </Box>

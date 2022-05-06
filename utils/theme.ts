@@ -11,7 +11,11 @@ const theme = extendTheme({
   initialColorMode: 'light',
   useSystemColorMode: false,
   styles: { global: { body: { bg: '#FFE194' } } },
-  components: { Button: { variants: { ghost: { _hover: { background: '#FEF4D9' } } } } },
+  components: {
+    Button: {
+      variants: { ghost: { _hover: { background: '#FEF4D9' }, _active: { background: '#FEF4D9' }, borderRadius: 0 } },
+    },
+  },
 });
 
 export default theme;

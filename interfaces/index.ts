@@ -4,7 +4,20 @@
 //
 // import { User } from 'path/to/interfaces';
 
+export type Message = {
+  id: number;
+  userId: string;
+  name: string;
+  time: Date;
+  body: string;
+  user: User;
+};
+
 export type User = {
-  id: number
-  name: string
-}
+  id: string;
+  name: string;
+};
+
+export type Room = {
+  id: number;
+};
