@@ -5,7 +5,7 @@ import { User } from '../interfaces';
 const useUser = () => {
   const [userId, setUserId] = useState<string>(null);
   const { data, mutate, error } = useSWR<User>(
-    userId === null ? `${process.env.NEXT_PUBLIC_HOST}/user/${userId}` : null,
+    userId !== null ? `${process.env.NEXT_PUBLIC_HOST}/user/${userId}` : null,
   );
   console.log('🚀 ~ useUser ~ data | userId | error', data, userId, error);
 
