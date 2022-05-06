@@ -17,10 +17,10 @@ const Rooms = ({ data }: { data: Room }) => {
 };
 
 const Chat = () => {
-  const { data, mutate } = useSWR<Room[]>(`http://${process.env.NEXT_PUBLIC_HOST}/room`);
+  const { data, mutate } = useSWR<Room[]>(`${process.env.NEXT_PUBLIC_HOST}/room`);
 
   const onClick = async () => {
-    const response = await fetch<Room>(`http://${process.env.NEXT_PUBLIC_HOST}/room/new`);
+    const response = await fetch<Room>(`${process.env.NEXT_PUBLIC_HOST}/room/new`);
     mutate([...data, response]);
   };
 

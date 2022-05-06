@@ -22,7 +22,7 @@ const Layout = ({ children, title = 'Study Hub' }: Props) => {
   }, [user?.name]);
 
   const onSubmit = async () => {
-    const response = await fetch<User>(`http://${process.env.NEXT_PUBLIC_HOST}/user/name`, {
+    const response = await fetch<User>(`${process.env.NEXT_PUBLIC_HOST}/user/name`, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
@@ -40,6 +40,7 @@ const Layout = ({ children, title = 'Study Hub' }: Props) => {
           <title>{title}</title>
           <meta charSet="utf-8" />
           <meta name="viewport" content="initial-scale=1.0, width=device-width" />
+          <meta http-equiv="Content-Security-Policy" content="upgrade-insecure-requests" />
         </Head>
         <Flex mx="auto" w={500} as="header" py={7} mb={5} justify="space-between">
           <HStack spacing={4}>
