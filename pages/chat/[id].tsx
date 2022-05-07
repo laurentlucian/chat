@@ -94,10 +94,10 @@ const Chatroom = () => {
   };
 
   return (
-    <Layout>
+    <Layout title={`Chatroom #${id}`}>
       <Flex justify="center">
         <Stack spacing={5}>
-          <Heading>Chatroom</Heading>
+          <Heading>Chatroom #{id}</Heading>
           <Flex>
             <Stack>
               <Stack overflow="auto" w={425} h={350}>
@@ -107,7 +107,7 @@ const Chatroom = () => {
                   </Msg>
                 ))}
               </Stack>
-              <HStack pl={2} borderRight="0px" alignItems="center">
+              <HStack border="1px solid black" pl={2} borderRight="0px" alignItems="center">
                 <Textarea
                   value={text}
                   onChange={handleTextArea}
@@ -124,7 +124,7 @@ const Chatroom = () => {
                 </Button>
               </HStack>
             </Stack>
-            <Stack pl={5}>
+            <Stack borderLeft="1px solid black" pl={5}>
               <Hide below="md">
                 <Text fontWeight="bold">Users</Text>
                 <Stack w={150}>

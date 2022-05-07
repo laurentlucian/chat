@@ -1,146 +1,131 @@
-import { useEffect, useState } from 'react';
+import { useState } from 'react';
 import Layout from '../components/Layout';
 import { Box, Button, Divider, Flex, Heading, HStack, Input, Stack, Text, Textarea } from '@chakra-ui/react';
-import { darken } from '@chakra-ui/theme-tools';
 import TextareaAutosize from 'react-textarea-autosize';
-import { nanoid } from 'nanoid';
+import useSWR from 'swr';
+import useUser from '../hooks/useUser';
+import fetcher from '../libs/fetch';
 
 const TaskItem = ({
   task,
   onEdit,
   onComplete,
+  onSave,
   onDelete,
 }: {
   task: Task;
   onComplete: (id: string) => void;
   onEdit: (value: string, id: string) => void;
+  onSave: (value: string, id: string) => void;
   onDelete: (id: string) => void;
 }) => {
-  const [hover, setHover] = useState(false);
-
   return (
-    <Flex
-      padding={1.5}
-      paddingLeft={5}
-      paddingRight={4}
-      width={400}
-      minHeight="45px"
-      alignItems="center"
-      justifyContent="space-between"
-      bg="#FFF4D9"
-      _hover={{ bg: darken('#FFF4D9', 6) }}
-      _focusWithin={{ bg: darken('#FFF4D9', 6) }}
-      onMouseEnter={() => setHover(true)}
-      onMouseLeave={() => setHover(false)}
-    >
+    <Flex width={400} justify="space-between" border="1px solid black">
       <Textarea
         as={TextareaAutosize}
         variant="unstyled"
-        value={task.value}
+        value={task.body}
         resize="none"
         minHeight="40px"
         fontWeight="semibold"
+        pl={3}
         pr={1}
         onChange={(e) => onEdit(e.currentTarget.value, task.id)}
+        onBlur={(e) => onSave(e.currentTarget.value, task.id)}
       />
 
-      <HStack justify="center" minW="25px">
-        {hover && (
-          <Text as="button" onClick={() => onComplete(task.id)} _hover={{ fontWeight: 'semibold' }}>
-            ✓
-          </Text>
-        )}
+      <HStack justify="center" spacing={0}>
+        <Button h="100%" variant="ghost" onClick={() => onComplete(task.id)}>
+          ✓
+        </Button>
 
-        <Text as="button" onClick={() => onDelete(task.id)} _hover={{ fontWeight: 'semibold' }} color="#FF7678">
+        <Button h="100%" variant="ghost" onClick={() => onDelete(task.id)} color="#FF7678">
           ✕
-        </Text>
+        </Button>
       </HStack>
     </Flex>
   );
 };
 const TaskCompletedItem = ({ task, onDelete }: { task: Task; onDelete: (id: string) => void }) => {
   return (
-    <Flex
-      padding={1.5}
-      paddingLeft={5}
-      paddingRight={4}
-      borderRadius={13}
-      width={400}
-      minHeight="45px"
-      alignItems="center"
-      justifyContent="space-between"
-      bg="#FCEBBB"
-    >
-      <Text wordBreak="break-word" fontWeight="semibold" pr={1}>
-        {task.value}
+    <Flex width={400} justify="space-between" minHeight="40px" border="1px solid black">
+      <Text w="100%" lineHeight="40px" pl={3} pr={1} wordBreak="break-word" fontWeight="semibold">
+        {task.body}
       </Text>
 
-      <Text as="button" onClick={() => onDelete(task.id)} _hover={{ fontWeight: 'semibold' }} color="#FF7678">
-        ✕
-      </Text>
+      <HStack justify="center">
+        <Button h="100%" variant="ghost" onClick={() => onDelete(task.id)} color="#FF7678">
+          ✕
+        </Button>
+      </HStack>
     </Flex>
   );
 };
 
 type Task = {
   id: string;
-  value: string;
+  body: string;
   completed: boolean;
 };
 
 const Tasks = () => {
   const [text, setText] = useState('');
-  const [tasks, setTasks] = useState<Array<Task>>([]);
+  const { user } = useUser();
+  const { data, mutate, error } = useSWR<Task[]>(
+    user ? [`${process.env.NEXT_PUBLIC_HOST}/tasks`, { headers: { userId: user.id } }] : null,
+  );
 
-  const onSave = (updatedTasks: Array<Task>) => {
-    localStorage.setItem('tasks', JSON.stringify(updatedTasks));
-  };
-
-  const onSubmit = () => {
-    setTasks((prevState) => {
-      if (text === '') return prevState;
-      const updatedTasks = [...prevState, { id: nanoid(), value: text, completed: false }];
-      onSave(updatedTasks);
-      setText('');
-      return updatedTasks;
+  const onSubmit = async () => {
+    if (text === '') return;
+    const response = await fetcher<Task>(`${process.env.NEXT_PUBLIC_HOST}/tasks/new`, {
+      method: 'post',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({ userId: user.id, value: text }),
     });
+    mutate([...data, response]);
+    setText('');
   };
 
   const onEdit = (value: string, id: string) => {
-    const newTasks = tasks.map((task) => (task.id === id ? { ...task, value } : task));
-    setTasks(newTasks);
-    onSave(newTasks);
+    mutate([...data.map((task) => (task.id === id ? { ...task, body: value } : task))], { revalidate: false });
   };
 
-  const onComplete = (id: string) => {
-    const newTasks = tasks.map((task) => (task.id === id ? { ...task, completed: true } : task));
-    setTasks(newTasks);
-    onSave(newTasks);
+  const onSave = async (value: string, id: string) => {
+    const response = await fetcher<Task>(`${process.env.NEXT_PUBLIC_HOST}/tasks/${id}/edit`, {
+      method: 'post',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ value }),
+    });
+    mutate([...data.map((task) => (task.id === id ? response : task))]);
+  };
+
+  const onComplete = async (id: string) => {
+    const response = await fetcher<Task>(`${process.env.NEXT_PUBLIC_HOST}/tasks/${id}/complete`, {
+      method: 'post',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ id, completed: true }),
+    });
+    mutate([...data.map((task) => (task.id === id ? response : task))]);
+  };
+
+  const onDelete = async (id: string) => {
+    await fetcher<Task>(`${process.env.NEXT_PUBLIC_HOST}/tasks/${id}`, { method: 'delete' });
+    mutate([...data.filter((task) => task.id !== id)]);
   };
 
   const onClear = () => {
-    setTasks([]);
-    onSave([]);
+    fetcher<Task[]>(`${process.env.NEXT_PUBLIC_HOST}/tasks/clear`);
+    mutate([]);
   };
 
-  const onDelete = (id: string) => {
-    const updatedTasks = tasks.filter((task) => task.id !== id);
-    setTasks(updatedTasks);
-    onSave(updatedTasks);
-  };
-
-  useEffect(() => {
-    const storedHistory = JSON.parse(localStorage.getItem('tasks'));
-    if (storedHistory) {
-      setTasks(storedHistory);
-    }
-  }, []);
+  if (!data) return <Text>Loading</Text>;
 
   return (
-    <Layout title="Task List">
+    <Layout title="Tasks">
       <Flex justify="center">
         <Box w="100%">
-          <Heading paddingBottom={10}>Task List</Heading>
           <HStack marginBottom={8}>
             <Input
               placeholder="What's up"
@@ -165,19 +150,26 @@ const Tasks = () => {
           </HStack>
 
           <Stack alignItems="center" spacing={5} minH="300px">
-            {tasks
+            {data
               .map(
                 (task) =>
                   !task.completed && (
-                    <TaskItem key={task.id} task={task} onComplete={onComplete} onDelete={onDelete} onEdit={onEdit} />
+                    <TaskItem
+                      key={task.id}
+                      task={task}
+                      onComplete={onComplete}
+                      onDelete={onDelete}
+                      onEdit={onEdit}
+                      onSave={onSave}
+                    />
                   ),
               )
               .reverse()}
           </Stack>
-          <Stack>
+          <Stack alignItems="center" spacing={5} minH="300px">
             <Divider my={5} borderColor="black" />
-            {tasks
-              .map((task) => task.completed && <TaskCompletedItem key={task.id} task={task} onDelete={onDelete} />)
+            {data
+              ?.map((task) => task.completed && <TaskCompletedItem key={task.id} task={task} onDelete={onDelete} />)
               .reverse()}
           </Stack>
         </Box>

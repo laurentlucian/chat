@@ -25,17 +25,14 @@ const Chat = () => {
   };
 
   return (
-    <Layout>
+    <Layout title="Chat">
       <Stack w={600} align="center" spacing={5}>
-        <HStack alignSelf="flex-start">
-          <Heading>Rooms</Heading>
-          <Button onClick={onClick} variant="ghost" size="sm">
-            +
-          </Button>
-        </HStack>
         <Stack justify="center" spacing={7} w={400}>
           {data ? data.map((room, index) => <Rooms data={room} key={index} />) : 'No rooms'}
         </Stack>
+        <Button onClick={onClick} variant="ghost">
+          New
+        </Button>
       </Stack>
     </Layout>
   );

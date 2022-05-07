@@ -7,7 +7,6 @@ const useUser = () => {
   const { data, mutate, error } = useSWR<User>(
     userId !== null ? `${process.env.NEXT_PUBLIC_HOST}/user/${userId}` : null,
   );
-  console.log('🚀 ~ useUser ~ data | userId | error', data, userId, error);
 
   const getUserId = () => {
     const localUser = localStorage.getItem('userId');
