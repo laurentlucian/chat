@@ -2,11 +2,13 @@ import { ChakraProvider } from '@chakra-ui/react';
 import { SWRConfig } from 'swr';
 import fetcher from '../libs/fetch';
 import theme from '../utils/theme';
+import Fonts from '../libs/fonts';
 
 const MyApp = ({ Component, pageProps }) => {
   return (
     <SWRConfig value={{ fetcher }}>
       <ChakraProvider theme={theme}>
+        <Fonts />
         <Component {...pageProps} />
       </ChakraProvider>
     </SWRConfig>

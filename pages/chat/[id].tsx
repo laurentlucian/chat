@@ -129,7 +129,11 @@ const Chatroom = () => {
                 <Text fontWeight="bold">Users</Text>
                 <Stack w={150}>
                   {users.map((user) => {
-                    return <Text key={user.id}>{user.name || user.id}</Text>;
+                    return (
+                      <Text fontSize={13} key={user.id}>
+                        {user.name || user.id}
+                      </Text>
+                    );
                   })}
                 </Stack>
               </Hide>
