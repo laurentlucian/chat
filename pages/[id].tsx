@@ -2,9 +2,9 @@ import { Button, Flex, Heading, Hide, HStack, Stack, Text, Textarea } from '@cha
 import { useRouter } from 'next/router';
 import { useEffect, useRef, useState } from 'react';
 import socketIO, { Socket } from 'socket.io-client';
-import Layout from '../../components/Layout';
-import useUser from '../../hooks/useUser';
-import { Message, User } from '../../interfaces';
+import Layout from '../components/Layout';
+import useUser from '../hooks/useUser';
+import { Message, User } from '../interfaces';
 
 const useChat = (roomId: string) => {
   const { user, loading } = useUser();

@@ -2,7 +2,7 @@ import { extendTheme } from '@chakra-ui/react';
 import { mode } from '@chakra-ui/theme-tools';
 
 const theme = extendTheme({
-  initialColorMode: 'light',
+  initialColorMode: 'dark',
   useSystemColorMode: false,
   styles: {
     global: (props) => ({
@@ -13,11 +13,6 @@ const theme = extendTheme({
         lineHeight: 'base',
       },
     }),
-  },
-  components: {
-    Button: {
-      variants: { ghost: { _hover: { background: '#E8DED8' }, _active: { background: '#E8DED8' }, borderRadius: 3 } },
-    },
   },
   fonts: {
     heading: 'MonoLisa Bold, sans-serif',

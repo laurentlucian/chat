@@ -1,8 +1,8 @@
 import { ChakraProvider } from '@chakra-ui/react';
 import { SWRConfig } from 'swr';
 import fetcher from '../libs/fetch';
-import theme from '../utils/theme';
 import Fonts from '../libs/fonts';
+import theme from '../utils/theme';
 
 const MyApp = ({ Component, pageProps }) => {
   return (

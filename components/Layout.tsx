@@ -1,4 +1,4 @@
-import { Box, Flex, HStack, Input, Text } from '@chakra-ui/react';
+import { Box, Flex, Heading, HStack, Input, Text } from '@chakra-ui/react';
 import Head from 'next/head';
 import { ReactNode, useEffect, useState } from 'react';
 import useUser from '../hooks/useUser';
@@ -11,8 +11,8 @@ type Props = {
   title?: string;
 };
 
-const Layout = ({ children, title = 'Study Hub' }: Props) => {
-  const { user, mutate, loading } = useUser();
+const Layout = ({ children, title = 'Chat' }: Props) => {
+  const { user, mutate, loading, error } = useUser();
   const [name, setName] = useState('');
 
   useEffect(() => {
@@ -31,7 +31,6 @@ const Layout = ({ children, title = 'Study Hub' }: Props) => {
     });
     mutate({ ...user, name: response.name });
   };
-  if (loading) return <Text>Loading...</Text>;
 
   return (
     <Flex justify="center">
@@ -43,12 +42,11 @@ const Layout = ({ children, title = 'Study Hub' }: Props) => {
           <meta http-equiv="Content-Security-Policy" content="upgrade-insecure-requests" />
         </Head>
         <Flex mx="auto" w={500} as="header" py={7} mb={5} justify="space-between">
-          <HStack spacing={4}>
-            <Link href="/">Home</Link>
-            <Link href="/tasks">Tasks</Link>
-            <Link href="/chat">Chat</Link>
+          <HStack w="100%" spacing={5}>
+            <Heading>Chat</Heading>
+            {loading && <Text>...</Text>}
+            {error && <Text color="red">Error</Text>}
           </HStack>
-
           <Input
             textAlign="right"
             value={name}
@@ -62,7 +60,6 @@ const Layout = ({ children, title = 'Study Hub' }: Props) => {
           />
         </Flex>
         {children}
-        {/* footer */}
       </Box>
     </Flex>
   );
